@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Products index{% endblock %}
+{% block title %}Product index{% endblock %}
 
 {% block body %}
     <h1>Product index</h1>
@@ -9,9 +9,9 @@
         <thead>
         <tr>
             <th>Id</th>
-            <th>Nom</th>
-            <th>Prix</th>
-            <th>Marque</th>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Brand</th>
         </tr>
         </thead>
         <tbody>
@@ -21,9 +21,17 @@
                 <td>{{ product.name }}</td>
                 <td>{{ product.price }}</td>
                 <td>{{ product.brand }}</td>
+                <td>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+    <a href="{{ path('createProduct') }}">Create a new product</a>
 {% endblock %}
+
 

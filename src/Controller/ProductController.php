@@ -47,6 +47,8 @@ class ProductController extends AbstractController
 
     /**
      * @Route("/product/{id}", name="productById")
+     * @param $id
+     * @return Response
      */
     public function show($id)
     {
@@ -61,5 +63,16 @@ class ProductController extends AbstractController
         }
 
         return new Response('You asked for the id ' . $id . ', here is the corresponding product : ' . $product->getName());
+    }
+
+    /**
+     * @Route("/delete", name="deleteProduct")
+     * @param Product $product
+     */
+    public function delete(Product $product)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->remove($product);
+        $entityManager->flush();
     }
 }
