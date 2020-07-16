@@ -1,0 +1,10 @@
+version: '3.2'
+
+services:
+  postgres:
+    image: postgres:11.6-alpine
+    environment:
+      POSTGRES_PASSWORD: vintage
+    ports:
+      - target: 5432
+        published: 5432
