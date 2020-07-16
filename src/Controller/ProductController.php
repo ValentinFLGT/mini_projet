@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -10,18 +11,21 @@ use Symfony\Component\Routing\Annotation\Route;
 class ProductController extends AbstractController
 {
     /**
-     * @Route("/product", name="product")
+     * @Route("/", name="productIndex")
+     * @param ProductRepository $productRepository
+     * @return Response
      */
+    public function index(ProductRepository $productRepository): Response
+    {
+        return $this->render('product/index.html.twig', [
+            // serialize the array before storing into DB, for loop is required in the view to access items
+            'products' => $productRepository->findAll(),
+        ]);
+    }
 
-// Pourquoi cette fonction bloque ma fonction createProduct ?
-
-//    public function index()
-//    {
-//        return $this->render('product/index.html.twig', [
-//            'controller_name' => 'ProductController',
-//        ]);
-//    }
-
+    /**
+     * @Route("/create", name="createProduct")
+     */
     public function createProduct(): Response
     {
         // fetch the EntityManager
