@@ -32,16 +32,34 @@ class ProductController extends AbstractController
         $entityManager = $this->getDoctrine()->getManager();
 
         $product = new Product();
-        $product -> setName('Soda');
-        $product -> setPrice(2);
-        $product -> setBrand('Coca-Cola');
+        $product->setName('Soda');
+        $product->setPrice(2);
+        $product->setBrand('Coca-Cola');
 
         // tell Doctrine we want to save the product (no queries yet)
-        $entityManager -> persist($product);
+        $entityManager->persist($product);
 
         // executes the queries
-        $entityManager -> flush();
+        $entityManager->flush();
 
-        Return new Response('Saved new product with id '.$product -> getId());
+        return new Response('Saved new product with id ' . $product->getId());
+    }
+
+    /**
+     * @Route("/product/{id}", name="productById")
+     */
+    public function show($id)
+    {
+        $product = $this->getDoctrine()
+            ->getRepository(Product::class)
+            ->find($id);
+
+        if (!$product) {
+            throw $this->createNotFoundException(
+                'No product found for id ' . $id
+            );
+        }
+
+        return new Response('You asked for the id ' . $id . ', here is the corresponding product : ' . $product->getName());
     }
 }
