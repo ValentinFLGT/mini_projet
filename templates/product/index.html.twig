@@ -26,12 +26,13 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="5">No items found</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-    <a href="{{ path('createProduct') }}">Create a new product</a>
+{#    <a href="{{ path('product_create') }}">Create a new product</a>#}
+{#    <a href="{{ path('product_delete') }}">Delete an old product</a>#}
 {% endblock %}
 
 
