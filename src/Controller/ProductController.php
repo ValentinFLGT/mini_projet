@@ -25,6 +25,16 @@ class ProductController extends AbstractController
     }
 
     /**
+     * @Route("/product/{product}", name="product_show")
+     * @param Product $product
+     * @return Response
+     */
+    public function showProduct(Product $product)
+    {
+        return new Response('You asked for the id ' . $product->getId() . ', here is the corresponding product : ' . $product->getName());
+    }
+
+    /**
      * @Route("/product", name="product_create")
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -43,16 +53,6 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route("/product/{product}", name="product_show")
-     * @param Product $product
-     * @return Response
-     */
-    public function showProduct(Product $product)
-    {
-        return new Response('You asked for the id ' . $product->getId() . ', here is the corresponding product : ' . $product->getName());
-    }
-
-    /**
      * @Route("/delete/{product}", name="product_delete")
      * @param Product $product
      * @param EntityManagerInterface $entityManager
@@ -61,6 +61,20 @@ class ProductController extends AbstractController
     public function deleteProduct(Product $product, EntityManagerInterface $entityManager)
     {
         $entityManager->remove($product);
+        $entityManager->flush();
+        return $this->redirectToRoute("product_index");
+    }
+
+    /**
+     * @Route("/update/{product}", name="product_update")
+     * @param Product $product
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function updateProduct(Product $product, EntityManagerInterface $entityManager)
+    {
+        $entityManager->getRepository(Product::class)->find($product);
+        $product->setPrice(3);
         $entityManager->flush();
         return $this->redirectToRoute("product_index");
     }
