@@ -26,21 +26,17 @@ class ProductController extends AbstractController
 
     /**
      * @Route("/product", name="product_create")
+     * @param EntityManagerInterface $entityManager
+     * @return Response
      */
-    public function createProduct(): Response
+    public function createProduct(EntityManagerInterface $entityManager): Response
     {
-        // fetch the EntityManager
-        $entityManager = $this->getDoctrine()->getManager();
-
         $product = new Product();
         $product->setName('Soda');
         $product->setPrice(2);
         $product->setBrand('Coca-Cola');
 
-        // tell Doctrine we want to save the product (no queries yet)
         $entityManager->persist($product);
-
-        // executes the queries
         $entityManager->flush();
 
         return new Response('Saved new product with id ' . $product->getId());
@@ -56,5 +52,16 @@ class ProductController extends AbstractController
         return new Response('You asked for the id ' . $product->getId() . ', here is the corresponding product : ' . $product->getName());
     }
 
-
+    /**
+     * @Route("/delete/{product}", name="product_delete")
+     * @param Product $product
+     * @param EntityManagerInterface $entityManager
+     * @return Response
+     */
+    public function deleteProduct(Product $product, EntityManagerInterface $entityManager)
+    {
+        $entityManager->remove($product);
+        $entityManager->flush();
+        return $this->redirectToRoute("product_index");
+    }
 }
