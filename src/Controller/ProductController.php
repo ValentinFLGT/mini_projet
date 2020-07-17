@@ -42,9 +42,9 @@ class ProductController extends AbstractController
     public function createProduct(EntityManagerInterface $entityManager): Response
     {
         $product = new Product();
-        $product->setName('Soda');
-        $product->setPrice(2);
-        $product->setBrand('Coca-Cola');
+        $product->setName("Ice Tea");
+        $product->setPrice(1);
+        $product->setBrand("Nestle");
 
         $entityManager->persist($product);
         $entityManager->flush();
