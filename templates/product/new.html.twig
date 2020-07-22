@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Create new Product! ✍️</h1>
+
+    {{ include('form/form.html.twig') }}
+
+    <a style="text-decoration: none" href="{{ path('product_index') }}">Back to list</a>
+{% endblock %}
