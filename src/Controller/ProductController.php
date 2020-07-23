@@ -5,10 +5,12 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Form\ProductFormType;
 use App\Repository\ProductRepository;
+use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 class ProductController extends AbstractController
@@ -21,7 +23,6 @@ class ProductController extends AbstractController
     public function index(ProductRepository $productRepository): Response
     {
         return $this->render('product/index.html.twig', [
-            // serialize the array before storing into DB, for loop is required in the view to access items
             'products' => $productRepository->findAll(),
         ]);
     }
@@ -31,15 +32,19 @@ class ProductController extends AbstractController
      * @param Product $product
      * @return Response
      */
-    public function showProduct(Product $product)
+    public function showProduct(Product $product = null): Response
     {
+        if ($product == null) return $this->render('product/error.html.twig', [
+            'product' => $product
+        ]);
+
         return $this->render('product/show.html.twig', [
             'product' => $product
         ]);
     }
 
     /**
-     * @Route("/create", name="create_product")
+     * @Route("/create", name="product_create")
      * @param EntityManagerInterface $entityManager
      * @param Request $request
      * @return Response
