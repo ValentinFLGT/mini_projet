@@ -34,7 +34,7 @@ class ProductController extends AbstractController
      */
     public function showProduct(Product $product = null): Response
     {
-        if ($product == null) return $this->render('product/error.html.twig', [
+        if (!$product) return $this->render('product/error.html.twig', [
             'product' => $product
         ]);
 
