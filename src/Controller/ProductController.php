@@ -3,97 +3,98 @@
 namespace App\Controller;
 
 use App\Entity\Product;
-use App\Form\ProductFormType;
+use App\Entity\User;
 use App\Repository\ProductRepository;
-use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityNotFoundException;
+use phpDocumentor\Reflection\DocBlock\Serializer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 class ProductController extends AbstractController
 {
     /**
-     * @Route("/", name="product_index")
+     * @Route("/api/product", name="product_index", methods={"GET"})
      * @param ProductRepository $productRepository
      * @return Response
      */
     public function index(ProductRepository $productRepository): Response
     {
-        return $this->render('product/index.html.twig', [
-            'products' => $productRepository->findAll(),
-        ]);
+        return $this->json($productRepository->findAll(), 200, []);
     }
 
     /**
-     * @Route("/product/{product}", name="product_show")
-     * @param Product $product
-     * @return Response
-     */
-    public function showProduct(Product $product = null): Response
-    {
-        if (!$product) return $this->render('product/error.html.twig', [
-            'product' => $product
-        ]);
-
-        return $this->render('product/show.html.twig', [
-            'product' => $product
-        ]);
-    }
-
-    /**
-     * @Route("/create", name="product_create")
-     * @param EntityManagerInterface $entityManager
+     * @Route("/api/product/create", name="product_create", methods={"POST"})
      * @param Request $request
+     * @param SerializerInterface $serializer
+     * @param EntityManagerInterface $entityManager
      * @return Response
      */
-    public function createProduct(EntityManagerInterface $entityManager, Request $request)
+    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager)
     {
-        $product = new Product();
-        $form = $this->createForm(ProductFormType::class, $product);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($product);
+        try {
+            $receivedJson = $request->getContent();
+            $deserializer = $serializer->deserialize($receivedJson, Product::class, 'json');
+            $entityManager->persist($deserializer);
             $entityManager->flush();
 
-            return $this->redirectToRoute('product_index');
+            return $this->json($deserializer, 201, []);
+        } catch (NotEncodableValueException $e) {
+            return $this->json([
+                'status' => 400,
+                'message' => $e->getMessage()
+            ], 400);
         }
-
-        return $this->render('product/new.html.twig', [
-            'product' => $product,
-            'form' => $form->createView(),
-        ]);
     }
 
     /**
-     * @Route("/update/{product}", name="product_update")
-     * @param Request $request
+     * @Route("/api/product/{product}", name="product_show", methods={"GET"})
      * @param Product $product
      * @return Response
      */
-    public function updateProduct(Request $request, Product $product): Response
+    public function showProduct(Product $product): Response
     {
-        $form = $this->createForm(ProductFormType::class, $product);
-        $form->handleRequest($request);
+        return $this->json($product, 200);
+    }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+    /**
+     * @Route("/api/product/update/{product}", name="product_update", methods={"PUT"})
+     * @param Product $product
+     * @param Request $request
+     * @param EntityManager $entityManager
+     * @return Response
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function updateProduct(Product $product, Request $request, EntityManager $entityManager): Response
+    {
+        $receivedJson = json_decode($request->getContent());
 
-            return $this->redirectToRoute('product_index');
-        }
+        $product->setName($receivedJson->name);
+        $product->setPrice($receivedJson->price);
+        $product->setBrand($receivedJson->brand);
 
-        return $this->render('product/update.html.twig', [
-            'product' => $product,
-            'form' => $form->createView(),
-        ]);
+        $entityManager->persist($product);
+        $entityManager->flush();
+
+        return $this->json($product, 200);
     }
 
 
     /**
-     * @Route("/delete/{product}", name="product_delete")
+     * @Route("/api/product/delete/{product}", name="product_delete")
      * @param Product $product
      * @param EntityManagerInterface $entityManager
      * @return Response

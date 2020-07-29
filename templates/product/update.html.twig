@@ -1,9 +1,0 @@
-{% extends 'base.html.twig' %}
-
-{% block body %}
-    <h1>Need to update Product ? 🛠</h1>
-
-    {{ include('form/form.html.twig', {'button_label': 'Update'}) }}
-
-    <a href="{{ path('product_index') }}">Back to List</a>
-{% endblock %}
