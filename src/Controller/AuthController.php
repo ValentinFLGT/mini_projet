@@ -44,7 +44,7 @@ class AuthController extends ApiController
     }
 
     /**
-     * @Route("/api/login_check", name="login_check")
+     * @Route("/api/login_check", name="login_check", methods={"POST"})
      * @param UserInterface $user
      * @param JWTTokenManagerInterface $JWTManager
      * @return JsonResponse

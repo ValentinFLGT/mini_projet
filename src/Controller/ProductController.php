@@ -8,6 +8,8 @@ use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use phpDocumentor\Reflection\DocBlock\Serializer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,6 +24,8 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class ProductController extends AbstractController
 {
@@ -36,26 +40,37 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route("/api/product/create", name="product_create", methods={"POST"})
+     * @Route("/api/product/create", name="product_create", methods={"PUT"})
      * @param Request $request
      * @param SerializerInterface $serializer
      * @param EntityManagerInterface $entityManager
+     * @param HttpClientInterface $httpClient
      * @return Response
      */
-    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager)
+    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $entityManager, HttpClientInterface $httpClient)
     {
         try {
             $receivedJson = $request->getContent();
-            $deserializer = $serializer->deserialize($receivedJson, Product::class, 'json');
-            $entityManager->persist($deserializer);
+            $product = $serializer->deserialize($receivedJson, Product::class, 'json');
+            $entityManager->persist($product);
             $entityManager->flush();
 
-            return $this->json($deserializer, 201, []);
+            return $this->json($httpClient->request('PUT', 'http://localhost:8080/product/create', [
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+                'body' => $receivedJson
+            ]), 201, []);
         } catch (NotEncodableValueException $e) {
             return $this->json([
                 'status' => 400,
                 'message' => $e->getMessage()
             ], 400);
+        } catch (TransportExceptionInterface $e) {
+            return $this->json([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -75,8 +90,8 @@ class ProductController extends AbstractController
      * @param Request $request
      * @param EntityManager $entityManager
      * @return Response
-     * @throws \Doctrine\ORM\ORMException
-     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws ORMException
+     * @throws OptimisticLockException
      */
     public function updateProduct(Product $product, Request $request, EntityManager $entityManager): Response
     {
