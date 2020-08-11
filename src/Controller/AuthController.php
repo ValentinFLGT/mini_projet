@@ -14,7 +14,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class AuthController extends ApiController
 {
-
     /**
      * @Route("/register", name="register", methods={"POST"})
      * @param Request $request
@@ -32,7 +31,6 @@ class AuthController extends ApiController
         if (empty($username) || empty($password) || empty($email)) {
             return $this->respondValidationError("Invalid Username or Password or Email");
         }
-
 
         $user = new User($username);
         $user->setPassword($encoder->encodePassword($user, $password));

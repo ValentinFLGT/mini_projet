@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Repository\ProductRepository;
+use Doctrine\DBAL\Driver\SQLSrv\SQLSrvException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
@@ -40,7 +41,7 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route("/api/product/create", name="product_create", methods={"PUT"})
+     * @Route("/api/product/create", name="product_create", methods={"POST"})
      * @param Request $request
      * @param SerializerInterface $serializer
      * @param EntityManagerInterface $entityManager
@@ -55,7 +56,7 @@ class ProductController extends AbstractController
             $entityManager->persist($product);
             $entityManager->flush();
 
-            return $this->json($httpClient->request('PUT', 'http://localhost:8080/product/create', [
+            return $this->json($httpClient->request('POST', 'http://localhost:8080/product/create', [
                 'headers' => [
                     'Content-Type' => 'application/json'
                 ],
@@ -88,12 +89,10 @@ class ProductController extends AbstractController
      * @Route("/api/product/update/{product}", name="product_update", methods={"PUT"})
      * @param Product $product
      * @param Request $request
-     * @param EntityManager $entityManager
+     * @param EntityManagerInterface $entityManager
      * @return Response
-     * @throws ORMException
-     * @throws OptimisticLockException
      */
-    public function updateProduct(Product $product, Request $request, EntityManager $entityManager): Response
+    public function updateProduct(Product $product, Request $request, EntityManagerInterface $entityManager): Response
     {
         $receivedJson = json_decode($request->getContent());
 
@@ -109,7 +108,7 @@ class ProductController extends AbstractController
 
 
     /**
-     * @Route("/api/product/delete/{product}", name="product_delete")
+     * @Route("/api/product/delete/{product}", name="product_delete", methods={"DELETE"})
      * @param Product $product
      * @param EntityManagerInterface $entityManager
      * @return Response
@@ -119,6 +118,6 @@ class ProductController extends AbstractController
         $entityManager->remove($product);
         $entityManager->flush();
 
-        return $this->redirectToRoute('product_index');
+        return $this->json($product, 204);
     }
 }
